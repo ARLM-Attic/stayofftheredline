@@ -2427,7 +2427,7 @@ var Game = function() {
 
       startLevel();
     }
-    i.src = spriteImageDataUrl;//"sprites.png";
+    i.src = "sprites.png";//spriteImageDataUrl;//
   }
 
   // draw the emitters to the screen and to the collision buffer
