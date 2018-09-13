@@ -12,9 +12,12 @@ var Game = function() {
   var screenWidth = tileWidth * screenCols;  // 800
   var screenHeight = tileWidth * screenRows; // 480
 
-  var maxReflections = 30;
   var spriteSize = 32;
 
+
+  var maxReflections = 30;
+
+  // tile constants
   var tileSolid = 1;
   var tileReflective = 2;
   var tileGreen = 3;
@@ -96,6 +99,8 @@ var Game = function() {
   var lastTextIndex1 = 0;
   var lastTextIndex2 = 0;
 
+
+  // red line emitter constants
   var emitterTypeRotate = 1;
   var emitterTypeConstant = 2;
 
@@ -113,6 +118,7 @@ var Game = function() {
   var emitterActorType = 2;
 
 
+  // sounds
   var soundStart = 1;
   var soundDie = 2;
   var soundJump = 3;
@@ -131,6 +137,8 @@ var Game = function() {
 
   // -------- end of constants
 
+
+  // 0 = not ready, 1 = ready
   var gameState = 0;
 
   var screenBuffer = null;
@@ -188,6 +196,7 @@ var Game = function() {
   // direction - red line direction
   // sX - x speed
   // sY - y speed
+  // minY - if emitter is moving, the y value where it will turn around
   var Emitter = function(x, y, type, direction, sX, sY, width, height, minY) {
     this.actorType = emitterActorType;
 
@@ -203,8 +212,6 @@ var Game = function() {
     this.flashEmitterLastTime = 0;
     this.flashEmitterOnTime = 1000;
     this.flashEmitterOffTime = 1000;
-
-
 
 
     this.points = [];
@@ -237,30 +244,44 @@ var Game = function() {
     this.state = 0;
   }
 
+  // was to be used for objects on the screen
+  // really only used for the player
   var Actor = function() {
     this.actorType = 0;
     this.x = 0;
     this.y = 0;
 
+    // player state, 0 = dead, 1 = alive, 2 = finished level
     this.state = 0;
     this.stateTimer = 0;
 
     this.height = 32;
     this.width = 32;
 
+    // x speed
     this.sX = 0;
+    // max x speed
     this.maxSX = 1;
+    // last direction travelled
     this.lastDirection = 0;
 
+    // last action performed
     this.lastAction = 0;
     this.lastActionTime = 0;
 
+    // y speed
     this.sY = 0;
+    // max y speed
     this.maxSY = 1;
     this.jumpStartY = 0;
 
+    // base sprite frame
     this.baseFrame = 0;
+
+    // how many frames in current animation
     this.frameCount = 0;
+
+    // current frame of the animation
     this.currentFrame = 0;
     this.frameTime = 0;
 
@@ -295,9 +316,6 @@ var Game = function() {
     this.touchingExit = 0;
   }
 
-
-
-
   // initialise the screen to blank with a border
   // remove all emitters and buttons
   var clearScreen = function() {
@@ -316,6 +334,10 @@ var Game = function() {
     buttons = [];    
   }
 
+
+  // start the current level
+  // initialise everything for the level
+  // then call the function to draw the level
   var startLevel = function() {
     clearScreen();
 
@@ -326,9 +348,9 @@ var Game = function() {
     lastTextIndex2 = 0;
     player.state = 1;
 
-    // need to use false as emitter can be 0
 
     // initialise the player
+    // need to use false as emitter can be 0
     player.onEmitter = false;
     player.inDash = 0;
     player.inWallJump = 0;
@@ -354,9 +376,10 @@ var Game = function() {
     playSound(soundStart);
   }
 
-  // the functions to create level layouts
+  // the functions to create the level layouts
   var levelFunctions = [];
 
+  // level 0 layout
   levelFunctions[0] = function() {
 
     exitX = 45;
@@ -447,11 +470,7 @@ var Game = function() {
     emitters.push(new Emitter(23, 13, emitterTypeConstant, emitterDirDown, 1, 0, tileWidth * 4));
     emitters.push(new Emitter(12, 14, emitterTypeConstant, emitterDirRight, 0, 0));
     emitters.push(new Emitter(37, 14, emitterTypeConstant, emitterDirLeft, 0, 0));
-
-
   }
-
-
 
   // level 2 layout
   levelFunctions[2] = function() {
@@ -460,7 +479,6 @@ var Game = function() {
 
     player.x = 32;
     player.y = 290;
-
 
     // draw the walls
     for(var y = 0; y < screenRows; y++) {
@@ -475,7 +493,6 @@ var Game = function() {
           ) {
           screen[y][x] = tileSolid;
         }
-
       }
     }
 
@@ -486,14 +503,11 @@ var Game = function() {
     emitters.push(new Emitter(18, 18, emitterTypeConstant, emitterDirRight, 0, 0));
     emitters.push(new Emitter(31, 18, emitterTypeConstant, emitterDirLeft, 0, 0));
 
-
     emitters.push(new Emitter(30, 22, emitterTypeConstant, emitterDirRight, 0, 0));
     emitters.push(new Emitter(37, 22, emitterTypeConstant, emitterDirLeft, 0, 0));
 
     emitters.push(new Emitter(24, 7, emitterTypeConstant, emitterDirRight, 0, 0, 2));
     emitters.push(new Emitter(18, 7, emitterTypeConstant, emitterDirLeft, 0, 0, 2));
-
-
   }
 
 
@@ -502,15 +516,12 @@ var Game = function() {
   // level 3 layout
   levelFunctions[3] = function() {
 
-
     state = 0;
     exitX = 45;
     exitY = 6;
 
     player.x = 32;
     player.y = 410;
-
-
 
     // draw the walls
     for(var y = 0; y < screenRows; y++) {
@@ -551,7 +562,6 @@ var Game = function() {
     buttons.push(new Button(38, 9, buttonYellow, buttonFloor));
     buttons.push(new Button(45, 19, buttonPurple, buttonFloor));
 
-
     emitters.push(new Emitter(43, 14, emitterTypeConstant, emitterDirUp, 0, 0 ));
     emitters.push(new Emitter(43, 18, emitterTypeConstant, emitterDirDown, 0, 0 ));
 
@@ -560,10 +570,6 @@ var Game = function() {
     emitters.push(new Emitter(10, 15, emitterTypeConstant, emitterDirLeft, 0, 0 ));
 
     emitters.push(new Emitter(26, 11, emitterTypeConstant, emitterDirLeft, 0, 0 ));
-
-//    emitters.push(new Emitter(18, 7, emitterTypeConstant, emitterDirLeft, 0, 0, 2));
-
-
   }
 
 
@@ -621,15 +627,11 @@ var Game = function() {
     }
 
 
-//    buttons.push(new Button(1, 8, buttonGreen, buttonLeftWall));
     buttons.push(new Button(9, 28, buttonGreen, buttonFloor));
     buttons.push(new Button(45, 28, buttonGreen, buttonFloor));
     buttons.push(new Button(9, 20, buttonBlue, buttonFloor));
     buttons.push(new Button(45, 13, buttonYellow, buttonFloor));
     buttons.push(new Button(3, 4, buttonPurple, buttonFloor));
-//    buttons.push(new Button(48, 20, buttonYello//w, buttonRightWall));
-//    buttons.push(new Button(20, 1, buttonYellow, buttonCeiling))////;
-
 
     emitters.push(new Emitter(15, 22, emitterTypeConstant, emitterDirDown, 1, 0));
     emitters.push(new Emitter(40, 22, emitterTypeConstant, emitterDirDown, -1, 0));
@@ -697,14 +699,11 @@ var Game = function() {
 
     buttons.push(new Button(24, 17, buttonGreen, buttonFloor));
 
-
     emitters.push(new Emitter(22, 23, emitterTypeConstant, emitterDirRight, 0, 0));
     emitters[emitters.length - 1].flash = 1;
 
     emitters.push(new Emitter(27, 23, emitterTypeConstant, emitterDirRight, 0, 0));
     emitters[emitters.length - 1].flash = 1;
-
-
 
     emitters.push(new Emitter(43, 18, emitterTypeConstant, emitterDirUp, 0, 0));
     emitters.push(new Emitter(37, 5, emitterTypeConstant, emitterDirUp, 0, 0));
@@ -779,7 +778,6 @@ var Game = function() {
       }
     }
 
-
     buttons.push(new Button(5, 10, buttonGreen, buttonFloor));
     buttons.push(new Button(10, 5, buttonBlue, buttonRightWall));
     buttons.push(new Button(5, 1, buttonYellow, buttonCeiling));
@@ -790,10 +788,7 @@ var Game = function() {
 
     emitters.push(new Emitter(18, 1, emitterTypeConstant, emitterDirDown, 0, 0));
     emitters.push(new Emitter(31, 1, emitterTypeConstant, emitterDirDown, 0, 0));
-
   }
-
-
 
   // level 7 layout
   levelFunctions[7] = function() {
@@ -834,8 +829,6 @@ var Game = function() {
     emitters.push(new Emitter(18, 10, emitterTypeConstant, emitterDirDownLeft, 1, 0));
 
   }
-
-
 
   // level 7 layout
   levelFunctions[8] = function() {
@@ -887,11 +880,7 @@ var Game = function() {
     emitters[emitters.length - 1].flashEmitterOnTime = 300;
     emitters[emitters.length - 1].flashEmitterOffTime = 300;
 
-//    emitters.push(new Emitter(49, 10, emitterTypeConstant, emitterDirLeft, 0, 0));
-
   }
-
-
 
   // level 9 layout
   levelFunctions[9] = function() {
@@ -936,8 +925,6 @@ var Game = function() {
           screen[y][x] = tilePurple;
 
             }
-
-
 
       }
     }
@@ -1050,7 +1037,7 @@ var Game = function() {
 
 
 
-  // update player acceleration, speed
+  // update player acceleration, speed, animation frame, etc
   var playerUpdate = function(time, dt) {
 
 
@@ -1129,8 +1116,6 @@ var Game = function() {
     }
 
 
-
-
     // does what the player is standing on have a speed?
     var belowSx = 0;
     var belowSy = 0;
@@ -1151,7 +1136,7 @@ var Game = function() {
         if(player.y > emitter.y - spriteSize + player.bounds[1]) {
           player.y = emitter.y - spriteSize + player.bounds[1];
         }
-//        console.log('set player y to ' + player.y + ',' + player.bounds[1]);
+
         belowSx = emitter.sX;
         if(emitter.sY > 0) {
           belowSy = emitter.sY;
@@ -1366,7 +1351,6 @@ var Game = function() {
           player.dashStartX = player.x;
           player.dashStartY = player.y;
 
-          console.log('action key!');
         }
       }
 
@@ -1447,7 +1431,6 @@ var Game = function() {
         }
       }
     } else {
-//      console.log('here = ' + time);
     }
 
 
@@ -1514,7 +1497,6 @@ var Game = function() {
               player.frameCount = 1;
 
             } else if(player.tileLeft) {
-              console.log('wall jump!');
               // starting a jump
               player.inJump = 1;
               playSound(soundJump);
@@ -1736,6 +1718,7 @@ var Game = function() {
   }
 
 
+  // crumble tile constants
   var crumbleStart = 1;
   var crumbleClear = 2;
 
@@ -1763,7 +1746,6 @@ var Game = function() {
     
 
     for(var i = crumbleBlocks.length - 1; i >= 0; i--) {
-///      if() {
         var x = crumbleBlocks[i][0];
         var y = crumbleBlocks[i][1];
         // change crumbleblock state
@@ -1776,7 +1758,6 @@ var Game = function() {
 
           crumbleBlocks.splice(i, 1);
         }
-//      }
     }
 
   }
@@ -1789,24 +1770,17 @@ var Game = function() {
     }
 
   }
-  // find whats around the actor
+
+  // find whats around the actor, move the actor if its on top of anything
   var checkActorBounds = function(actor) {
     var tile = 0;
 
     var bounds = actor.bounds;
 
-    /*
-    var x = Math.floor(actor.x) + bounds[0];
-    var y = Math.floor(actor.y) + bounds[1] ;
-    var width = bounds[2] - bounds[0] ;
-    var height = bounds[3] - bounds[1] ;
-    */
-
     var leftEdge = Math.floor(actor.x) + bounds[0];
     var rightEdge = Math.floor(actor.x) + bounds[2];
     var topEdge = Math.floor(actor.y) + bounds[1];
     var bottomEdge = Math.floor(actor.y) + bounds[3];
-
 
     // check top edge
     actor.tileAbove = 0;
@@ -1928,12 +1902,6 @@ var Game = function() {
           // if the actor is already a fraction above, dont want to readjust
           if(actor.y + bounds[3] > testY ) {
             actor.y = testY - bounds[3];
-            /*
-            if(actor.actorType != emitterActorType) {
-
-              console.log('shift actor yto ' + actor.y + 'tety = ' + testY + ', bottomedge = ' + bottomEdge);
-            }
-            */
           }
           break;
         }
@@ -2021,11 +1989,6 @@ var Game = function() {
 
           if(actor.x + bounds[2] > testX) {
             actor.x = testX - bounds[2];
-/*
-            if(actor.actorType != emitterActorType) {
-              console.log('shift actor xto ' + actor.x + 'tetx = ' + testX + ', rightedge = ' + rightEdge);
-            }
-*/            
           }
           break;
         }
@@ -2035,6 +1998,7 @@ var Game = function() {
 
 
   // create the different tiles..
+  // fill rect seems faster than drawimage, so not using filled tiles
   var createTiles = function() {
     tileCanvas.height = tileHeight;
     tileCanvas.width = 40 * tileWidth;
@@ -2088,6 +2052,7 @@ var Game = function() {
     
   }
 
+  // create a player sprite with specified transform
   var createSprite = function(imageData, srcX, srcY, dstX, dstY, transform) {
     for(var y = 0; y < spriteSize; y++) {
       var dstPos = 0;
@@ -2117,6 +2082,8 @@ var Game = function() {
     }
   }
 
+  // work out sprite bounds
+  // sprite bounds are in black in sprite sheet
   var getSpriteBounds = function(imageData, srcX, srcY) {
     var left = spriteSize;
     var right = 0;
@@ -2151,13 +2118,14 @@ var Game = function() {
 
   }
 
+  // create the player sprites
   var createSprites = function() {
     spriteImageData = spriteContext.getImageData(0, 0, spriteCanvas.width, spriteCanvas.height);
 
 
     var spriteCount = 11;
     var playerSpriteCount = 11;
-    // first 6 sprites are the source sprites
+    // first 1 sprites are the source sprites facing right
     var spriteX = spriteCount * spriteSize;
 
     var i = 0;
@@ -2205,6 +2173,7 @@ var Game = function() {
 
   }
 
+  // midi number to frequency
   midiToFreq = function(note) {
     return (Math.pow(2, (note-69) / 12)) * 440.0;
   }
@@ -2213,6 +2182,7 @@ var Game = function() {
   var pinkNoiseLength = 0;
   var pinkNoise = [];
 
+  // create pink noise, ended up using standard noise, can remove
   createPinkNoise = function() {
     var b0, b1, b2, b3, b4, b5, b6;
     b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;    
@@ -2231,6 +2201,7 @@ var Game = function() {
   }
 
   var noiseBuffer = null;
+  // create a buffer full of noise to use for noise sound effects
   createNoiseBuffer = function() {
 
     var bufferSize = 2 * audioContext.sampleRate;
@@ -2251,6 +2222,8 @@ var Game = function() {
     createPinkNoise();
     createNoiseBuffer();
   }
+
+  // play a sound
   playSound = function(soundType) {
     if(audioContext == null) {
       return;
@@ -2289,10 +2262,8 @@ var Game = function() {
         audioSource.frequency.setValueAtTime(midiToFreq(59), time + noteLength);  // D4
         audioSource.frequency.setValueAtTime(midiToFreq(62), time + noteLength * 2);  // D4
 
-        // very quick attack to a value of 1:
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 1/64);
-        // immediate decay to a value of 0:
         gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + noteLength * 3);
 
         soundLength = noteLength * 4;
@@ -2305,12 +2276,9 @@ var Game = function() {
 
        
         audioSource.frequency.linearRampToValueAtTime(midiToFreq(49), time + noteLength); // c#3 49
-//        audioSource.frequency.setValueAtTime(midiToFreq(62), time + noteLength);
 
-        // very quick attack to a value of 1:
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.03, audioContext.currentTime + noteLength);
-        // immediate decay to a value of 0:
         gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + noteLength * 2);
 
         soundLength = noteLength * 2;
@@ -2322,14 +2290,11 @@ var Game = function() {
         audioSource.frequency.setValueAtTime(midiToFreq(55), time);    // G3
         audioSource.frequency.setValueAtTime(midiToFreq(62), time + noteLength);  // D4
 
-        // very quick attack to a value of 1:
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 1/64);
-        // immediate decay to a value of 0:
         gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + noteLength * 2);
 
         soundLength = noteLength * 2;
-
 
         break;
       case soundDash:
@@ -2351,7 +2316,6 @@ var Game = function() {
         audioSource.type = 'triangle';
         audioSource.frequency.setValueAtTime(midiToFreq(43), time);    // G2
 
-        // very quick attack to a value of 1:
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 1/32);
         gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + noteLength);
@@ -2364,7 +2328,6 @@ var Game = function() {
         audioSource.type = 'triangle';
         audioSource.frequency.setValueAtTime(midiToFreq(47), time);    // b2
 
-        // very quick attack to a value of 1:
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 1/32);
         gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + noteLength);
@@ -2377,7 +2340,6 @@ var Game = function() {
         audioSource.type = 'triangle';
         audioSource.frequency.setValueAtTime(midiToFreq(50), time);    // d3
 
-        // very quick attack to a value of 1:
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 1/32);
         gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + noteLength);
@@ -2390,7 +2352,6 @@ var Game = function() {
         audioSource.type = 'triangle';
         audioSource.frequency.setValueAtTime(midiToFreq(54), time);    // f#3
 
-        // very quick attack to a value of 1:
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 1/32);
         gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + noteLength);
@@ -2405,18 +2366,8 @@ var Game = function() {
         audioSource.frequency.setValueAtTime(midiToFreq(62), time + noteLength);  // D4
         audioSource.frequency.setValueAtTime(midiToFreq(67), time + noteLength * 2);    // G4
 
-        /*
-        audioSource.frequency.setValueAtTime(midiToFreq(55), time);    // G3
-        audioSource.frequency.setValueAtTime(midiToFreq(62), time + noteLength);  // D4
-        audioSource.frequency.setValueAtTime(midiToFreq(59), time + noteLength * 2);  // D4
-        audioSource.frequency.setValueAtTime(midiToFreq(62), time + noteLength * 3);  // D4
-        audioSource.frequency.setValueAtTime(midiToFreq(55), time + noteLength * 4);    // G3
-        */
-
-        // very quick attack to a value of 1:
         gain.gain.setValueAtTime(0, time);
         gain.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 1/64);
-        // immediate decay to a value of 0:
         gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + noteLength * 6);
 
         soundLength = noteLength * 6;
@@ -2430,7 +2381,6 @@ var Game = function() {
   }
 
   this.init = function() {
-    //var _this = this;
 
     var doc = document;
     doc.onkeydown = keyDown;
@@ -2439,6 +2389,8 @@ var Game = function() {
 
     screenCanvas = doc.getElementById('screen');
     scale = 1;
+
+    // TODO: account for device pixel ratio
 //    scale = Math.floor(window.devicePixelRatio);
     screenCanvas.style.width = screenWidth + 'px';
     screenCanvas.style.height = screenHeight + 'px';
@@ -2642,7 +2594,7 @@ var Game = function() {
 
 
   // returns collision point for a line
-  // [xcollision, ycollision, collision type, collided widt horiz, collided with vert]
+  // returns: [xcollision, ycollision, collision type, collided widt horiz, collided with vert]
   var findLineEnd = function(x, y, angle, emitter) {
 
 
@@ -2712,6 +2664,7 @@ var Game = function() {
     }
   }
 
+  // draw the red lines from the emitters
   var drawLines = function() {
     screenContext.lineWidth = 2;
     screenContext.strokeStyle = '#ff0000';
@@ -2765,7 +2718,7 @@ var Game = function() {
   }
 
 
-
+  // draw the buttons
   var drawButtons = function() {
     var buttonLeft = 0;
     var buttonRight = 0;
@@ -2784,19 +2737,6 @@ var Game = function() {
 
       screenContext.fillStyle = stateColors[buttons[i].type - 3];
 
-      /*
-      if(buttons[i].type == 3) {
-        screenContext.fillStyle = '#00cc00';
-      } else if(buttons[i].type == 4) {
-        screenContext.fillStyle = '#0000cc';
-      } else if(buttons[i].type == buttonYellow) {
-        screenContext.fillStyle = '#cccc00';
-      } else if(buttons[i].type == buttonPurple) {
-        screenContext.fillStyle = '#cc00cc';
-      }
-      */
-
-//console.log(screenContext.fillStyle);
       if(buttons[i].type == state) {
         buttonHeight = 3;
       }
@@ -2846,17 +2786,6 @@ var Game = function() {
 
       screenContext.fillStyle = stateOutlineColors[buttons[i].type - 3];
 
-      /*
-      if(buttons[i].type == 3) {
-        screenContext.fillStyle = '#008800';
-      } else if(buttons[i].type == 4) {
-        screenContext.fillStyle = '#000088';
-      } else if(buttons[i].type == 5) {
-        screenContext.fillStyle = '#888800';
-      } else if(buttons[i].type == 6) {
-        screenContext.fillStyle = '#880000';
-      }
-      */
 
       switch(buttons[i].orientation) {
         case buttonFloor:
@@ -2891,6 +2820,8 @@ var Game = function() {
   }
 
 
+  // draw the actors (just the player)
+  // check for collisions with lines or the exit
   var drawActors = function() {
     if(!spriteImageData) {
       return;
@@ -2898,7 +2829,6 @@ var Game = function() {
     for(var i = 0; i < actors.length; i++) {
       var actor = actors[i];
       var spriteIndex = actor.baseFrame + actor.currentFrame;
-      //console.log(spriteIndex);
 
       var dstPos = (Math.floor(actor.x) + Math.floor(actor.y) * screenWidth);
 
@@ -2919,9 +2849,6 @@ var Game = function() {
               actor.state = 0;
               actor.stateTimer = 0;
               playSound(soundDie);
-//              actor.baseFrame = 7;
-//              actor.frameCount = 1;
-//              actor.currentFrame = 0;
             }
 
             if(screenBuffer[bufDst] == 30) {
@@ -2962,7 +2889,7 @@ var Game = function() {
     }
   }
 
-
+  // draw the exit
   var drawExit = function() {
     var x = exitX * tileWidth;
     var y = exitY * tileHeight + tileHeight;
@@ -3017,7 +2944,6 @@ var Game = function() {
 
     var words2 = [
       [32, 46, 83, 7]
-//      [98, 46, 41, 7]
     ]
 
     if(time - lastTextChangeTime > 800) {
@@ -3336,8 +3262,6 @@ var Game = function() {
         updateEmitters(emitterDt);
       }
 
-
-
       // have to move player down with emitter, otherwise player test will things player in air
       if(player.onEmitter !== false) {
         // is the emitter moving down?
@@ -3366,7 +3290,6 @@ var Game = function() {
     if(dt > 0) {
       playerUpdate(time, dt);
     }
-
 
     updateCrumbleBlocks(time);
 
